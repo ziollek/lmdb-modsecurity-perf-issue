@@ -1,0 +1,33 @@
+version: "3.9"
+services:
+#  base:
+#    image: nginx-with-modsec-base
+#    build:
+#      dockerfile: ./docker/nginx-with-modsec-base/Dockerfile
+  nginx-before-fix:
+    build:
+      dockerfile: ./docker/nginx-with-specific-modsec/Dockerfile
+      args:
+        - MODSEC_VERSION=3.0.6
+    restart: always
+    ports:
+      - "8081:80"
+    volumes:
+      - ./config/mount/:/etc/nginx/rules/
+  nginx-after-fix:
+    build:
+      dockerfile: ./docker/nginx-with-specific-modsec/Dockerfile
+      args:
+        - MODSEC_VERSION=3.0.7
+    restart: always
+    ports:
+      - "8082:80"
+    volumes:
+      - ./config/mount/:/etc/nginx/rules/
+  dangling-backend:
+    image: codingpuss/long-api:0.0.1
+    hostname: backend
+    ports:
+      - "8083:8181"
+#    depends_on:
+#      - base
