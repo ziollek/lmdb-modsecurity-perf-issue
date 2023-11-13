@@ -1,0 +1,26 @@
+version: "3.9"
+services:
+  kernel:
+    image: nginx-with-compiled-kernel
+    build:
+      dockerfile: ./docker/nginx-compiled-kernel/Dockerfile
+  nginx-before-fix:
+    image: nginx-profiling-before-fix
+    build:
+      args:
+        - MODSEC_VERSION=3.0.6
+        - BASE=nginx-with-compiled-kernel
+    cap_add:
+      - SYS_ADMIN
+      - SYS_PTRACE
+  nginx-after-fix:
+    image: nginx-profiling-after-fix
+    build:
+      dockerfile: ./docker/nginx-with-specific-modsec/Dockerfile
+      args:
+        - MODSEC_VERSION=3.0.7
+        - BASE=nginx-with-compiled-kernel
+    cap_add:
+      - SYS_ADMIN
+      - SYS_PTRACE
+

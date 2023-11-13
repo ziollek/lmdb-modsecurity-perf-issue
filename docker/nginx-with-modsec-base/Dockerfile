@@ -1,10 +1,10 @@
-FROM ubuntu:20.04
+FROM ubuntu:23.04
 
-ARG NGINX_VERSION=1.18.0
+ARG NGINX_VERSION=1.22.0
 
 RUN apt-get update
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y libtool autoconf build-essential libpcre3-dev zlib1g-dev libssl-dev libxml2-dev libgeoip-dev liblmdb-dev libyajl-dev libcurl4-openssl-dev libpcre++-dev pkgconf libxslt1-dev libgd-dev automake
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y git curl wget
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y libtool autoconf build-essential libpcre3-dev zlib1g-dev libssl-dev libxml2-dev libgeoip-dev liblmdb-dev libyajl-dev libcurl4-openssl-dev pkgconf libxslt1-dev libgd-dev automake
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y git curl wget gdb lsof strace systemtap
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y nginx=${NGINX_VERSION}*
 
 RUN mkdir -p /usr/local/src/workdir
@@ -39,5 +39,4 @@ RUN make
 
 # copy static configuration responsible for turning on modsecurity in nginx
 COPY config/copy/load_mod_security.conf /etc/nginx/load_mod_security.conf
-COPY config/copy/nginx.conf /etc/nginx/nginx.conf
 COPY config/copy/50-mod-http-modsecurity.conf /etc/nginx/modules-enabled/50-mod-http-modsecurity.conf

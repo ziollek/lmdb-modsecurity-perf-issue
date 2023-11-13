@@ -1,6 +1,7 @@
-FROM nginx-with-modsec-base
-
 ARG MODSEC_VERSION=3.0.7
+ARG BASE=nginx-with-modsec-base
+
+FROM ${BASE}
 
 WORKDIR "/usr/local/src/workdir/modsecurity-v${MODSEC_VERSION}"
 RUN make install

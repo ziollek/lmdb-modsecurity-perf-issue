@@ -1,40 +1,114 @@
 # lmdb-modsecurity-perf-issue
 The aim of this repo is to show how performance issue of reading LMBD from modsecurity  was revealed.
 
+# Building environment
+
+The base build is significantly faster (should be at least two times) and allows reproducing problem, but it does not contain toolset to reveals root cause.
+
+## What does the environment consist of?
+
+The environment consists of three container:
+- dangling-backend
+- nginx-before-fix (exposed under localhost:8081)
+- nginx-after-fix (exposed under localhost:8082)
+
+As an upstream (dangling-backend) [long-api](https://datmt.com/backend/docker-image-to-simulate-long-delay-api-calls/) container is used that provide convenient way for controlling upstream delay via request url.
 
 
-# feed lmdb on both environments with some collections:
+## Building base environment
 
 ```
-for i in {1..10000}; do curl -H"x-set-sample: ${i}" -o /dev/null -s localhost:8081; done
-for i in {1..10000}; do curl -H"x-set-sample: ${i}" -o /dev/null -s localhost:8082; done
+docker-compose up -d --build
 ```
 
-# simple performance test based on ab tool
+## Building profiling environment
 
-requests without argument (no lookups to LMDB) - requests are proxied to backend that responds in 200ms 
+Such environment requires to compile kernel which can take a significant time.
+```
+docker-compose -f docker-compose.yml -f docker-compose.override.dev.yml up --build
+```
+
+## Building remarks
+
+The consecutive runs does not require `--build` parameters.
+
+# Preparing sample data
+
+There exists the script that utilizes one of modsecurity rules to fill LMDB collections with sample data.
+
+## Feeding LMBD on both environments with some collections
+
+```
+bash feed.sh 10000 8081
+bash feed.sh 10000 8082
+```
+
+# How does the modssec configuration consists of?
+
+The configuration is prepared in such a way to exaggerate the concurrent access to LMD.
+It contains two main parts:
+- first part allows adding rules to collection that is stored in LMDB
+- second part makes a lot (fifty) lookups to mentioned collection in order to find a needle
+
+# Testing performance
+
+The nginx configuration has enabled verbose access log that allows verifying the all phases of processing request by nginx.
+The logs can be previewed by the following command:
+```
+docker-compose exec nginx-before-fix tail -f /var/log/nginx/access.log
+```
+
+The meaning of particular variables can be found [here](https://nginx.org/en/docs/varindex.html).
+
+## Simple performance test based on ab tool
+
+Requests without argument (no lookups to LMDB) - requests are proxied to backend that responds in 200ms
 ```
 ab -k -c 8 -n 1000 -l "http://localhost:8081/users/200/random"
 ab -k -c 8 -n 1000 -l "http://localhost:8082/users/200/random"
 ```
 
-requests without blocked argument (block on first SecRule)
+Requests without blocked argument (block on first SecRule)
 
 ```
 ab -k -c 8 -n 1000 "http://localhost:8081/?arg=1"
 ab -k -c 8 -n 1000 "http://localhost:8082/?arg=1"
 ```
 
-requests without blocked argument that is not blocked (1000 lookups per request)
+Requests without blocked argument that is not blocked (1000 lookups per request)
 
 ```
 ab -k -c 20 -n 500 -l "http://localhost:8081/users/200/random?arg=unknown"
 ab -k -c 20 -n 500 -l "http://localhost:8082/users/200/random?arg=unknown"
 ```
 
-TODO:
-- adding gdb / lsof
-- privileged mode
-- gather instrumentation data: https://github.com/SpiderLabs/ModSecurity-nginx/pull/278#issuecomment-1098075814
-- gather logs
-- grafana
+# Profiling
+
+If the containers are spawned from profiling file then they consists some toolset that allows to determine the bottlenecks in nginx processes.
+Below there are sample commands that allows how to reveal problem
+
+```
+docker-compose exec nginx-before-fix bash
+trace-bpfcc -t  'p:/usr/local/modsecurity/lib/libmodsecurity.so.3.0.7:msc_process_request_headers "start"' 'r:/usr/local/modsecurity/lib/libmodsecurity.so.3.0.7:msc_process_request_headers "stop"' 2>/dev/null
+```
+
+As a result of such profiling one line is printed when:
+- the nginx process calls `msc_process_request_headers` function from modsecurity library
+- the nginx process gets a response from `msc_process_request_headers` function
+
+All such logs are additionally enriched with the pid of the nginx process and a timestamp with a milliseconds resolution. It worth mentioning that the logs can be printed in improper order.
+The profiling is focused on purpose on `msc_process_request_headers` because the rules defined in a sample modsec policy are processed in request headers phase that is wrapped by `msc_process_request_headers`.
+
+In order to compute the processing time for each request within an test that consist of them, you can use the following snippet:
+
+Terminal one
+```
+docker-compose exec nginx-before-fix bash
+trace-bpfcc -t  'p:/usr/local/modsecurity/lib/libmodsecurity.so.3.0.7:msc_process_request_headers "start"' 'r:/usr/local/modsecurity/lib/libmodsecurity.so.3.0.7:msc_process_request_headers "stop"' 2>/dev/null > /tmp/profiling.log
+```
+
+In another terminal order the benchmark and wait for a results. After that stop profiling process (Ctrl+c) and compute results:
+
+```
+cat /tmp/profiling.log  | sort -n | awk '{if ($6 == "start") { data[$2] = $1} else { summary += 1000 * ($1 - data[$2]); print $1, $2, 1000 * ($1 - data[$2]) }} END {print "Total time:", summary}'
+```
