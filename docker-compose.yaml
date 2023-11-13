@@ -17,6 +17,8 @@ services:
     volumes:
       - ./config/mount/nginx.conf:/etc/nginx/nginx.conf
       - ./config/mount/rules/:/etc/nginx/rules/
+    depends_on:
+      - base
   nginx-after-fix:
     image: nginx-after-fix
     build:
@@ -30,6 +32,8 @@ services:
     volumes:
       - ./config/mount/nginx.conf:/etc/nginx/nginx.conf
       - ./config/mount/rules/:/etc/nginx/rules/
+    depends_on:
+      - base
   dangling-backend:
     image: codingpuss/long-api:0.0.1
     hostname: backend
