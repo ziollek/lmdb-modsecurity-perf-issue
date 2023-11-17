@@ -110,5 +110,5 @@ trace-bpfcc -t  'p:/usr/local/modsecurity/lib/libmodsecurity.so.3.0.7:msc_proces
 In another terminal order the benchmark and wait for a results. After that stop profiling process (Ctrl+c) and compute results:
 
 ```
-cat /tmp/profiling.log  | sort -n | awk '{if ($6 == "start") { data[$2] = $1} else { summary += 1000 * ($1 - data[$2]); print $1, $2, 1000 * ($1 - data[$2]) }} END {print "Total time:", summary}'
+cat /tmp/benchmark.log  | sort -n | awk '{if ($6 == "start") { data[$2] = $1} else { calls++; summary += 1000 * ($1 - data[$2]); print $1, $2, 1000 * ($1 - data[$2]) }} END {print "Total time spent on locking:", summary, " number of calls: ", calls}'
 ```
