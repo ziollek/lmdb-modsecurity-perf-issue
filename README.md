@@ -64,27 +64,27 @@ The meaning of particular variables can be found [here](https://nginx.org/en/doc
 
 Requests without argument (no lookups to LMDB) - requests are proxied to backend that responds in 200ms
 ```
-ab -k -c 8 -n 1000 -l "http://localhost:8081/users/200/random"
-ab -k -c 8 -n 1000 -l "http://localhost:8082/users/200/random"
+ab -k -c 20 -n 80 -l "http://localhost:8081/users/200/random"
+ab -k -c 20 -n 80 -l "http://localhost:8082/users/200/random"
 ```
 
 Requests without blocked argument (block on first SecRule)
 
 ```
-ab -k -c 8 -n 1000 "http://localhost:8081/?arg=1"
-ab -k -c 8 -n 1000 "http://localhost:8082/?arg=1"
+ab -k -c 20 -n 80 "http://localhost:8081/?arg=1"
+ab -k -c 20 -n 80 "http://localhost:8082/?arg=1"
 ```
 
 Requests without blocked argument that is not blocked (1000 lookups per request)
 
 ```
-ab -k -c 20 -n 500 -l "http://localhost:8081/users/200/random?arg=unknown"
-ab -k -c 20 -n 500 -l "http://localhost:8082/users/200/random?arg=unknown"
+ab -k -c 20 -n 80 -l "http://localhost:8081/users/200/random?arg=unknown"
+ab -k -c 20 -n 80 -l "http://localhost:8082/users/200/random?arg=unknown"
 ```
 
 # Profiling
 
-If the containers are spawned from profiling file then they consists some toolset that allows to determine the bottlenecks in nginx processes.
+If the containers are spawned from profiling file then they consist some toolset that allows to determine the bottlenecks in nginx processes.
 Below there are sample commands that allows how to reveal problem
 
 ```
