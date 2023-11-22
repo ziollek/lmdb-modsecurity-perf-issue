@@ -25,7 +25,7 @@ docker-compose up -d --build
 
 Such environment requires to compile kernel which can take a significant time.
 ```
-docker-compose -f docker-compose.yml -f docker-compose.override.dev.yml up --build
+docker-compose -f docker-compose.yaml -f docker-compose.override.profiling.yaml up --build
 ```
 
 ## Building remarks
@@ -53,9 +53,14 @@ It contains two main parts:
 # Testing performance
 
 The nginx configuration has enabled verbose access log that allows verifying the all phases of processing request by nginx.
-The logs can be previewed by the following command:
+The logs can be previewed by the following commands:
+nginx before fix:
 ```
 docker-compose exec nginx-before-fix tail -f /var/log/nginx/access.log
+```
+nginx after fix:
+```
+docker-compose exec nginx-after-fix tail -f /var/log/nginx/access.log
 ```
 
 The meaning of particular variables can be found [here](https://nginx.org/en/docs/varindex.html).
@@ -68,7 +73,7 @@ ab -k -c 20 -n 80 -l "http://localhost:8081/users/200/random"
 ab -k -c 20 -n 80 -l "http://localhost:8082/users/200/random"
 ```
 
-Requests without blocked argument (block on first SecRule)
+Requests with blocked argument (block on first SecRule)
 
 ```
 ab -k -c 20 -n 80 "http://localhost:8081/?arg=1"
