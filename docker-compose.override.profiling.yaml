@@ -4,6 +4,8 @@ services:
     image: nginx-with-compiled-kernel
     build:
       dockerfile: ./docker/nginx-with-compiled-kernel/Dockerfile
+    depends_on:
+      - base
   nginx-before-fix:
     image: nginx-profiling-before-fix
     build:
