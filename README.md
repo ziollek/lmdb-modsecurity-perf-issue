@@ -29,8 +29,7 @@ docker-compose -f docker-compose.yaml -f docker-compose.override.profiling.yaml 
 ```
 
 Caveats: You have to bear in mind that profiling tools require compiled kernel headers in order to be available in a container.
-Such headers have to be compatible with the host kernel (in the case of OSX is the kernel of `docker` VM). The above setup was tested only with `docker desktop` on `OSX`.
-It was confirmed that it is not working for example with `docker` on OpenSuse.
+Such headers have to be compatible with the host kernel (in the case of OSX is the kernel of `docker` VM). The above setup was tested only with `docker desktop` on `OSX` and with `docker` on `openSUSE Tumbleweed`.
 
 ## Building remarks
 
