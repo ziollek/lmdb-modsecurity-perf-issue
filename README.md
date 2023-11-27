@@ -42,8 +42,7 @@ docker compose -f docker-compose.yaml -f docker-compose.override.profiling.yaml 
 ```
 
 Caveats: You have to bear in mind that profiling tools require compiled kernel headers in order to be available in a container.
-Such headers have to be compatible with the host kernel (in the case of OSX is the kernel of `docker` VM). The above setup was tested only with `docker desktop` on `OSX`.
-It was confirmed that it is not working for example with `docker` on OpenSuse.
+Such headers have to be compatible with the host kernel (in the case of OSX is the kernel of `docker` VM). The above setup was tested only with `docker desktop` on `OSX` and with `docker` on `openSUSE Tumbleweed`.
 
 ## Building remarks
 
@@ -111,22 +110,22 @@ Below there are sample commands that allows how to reveal problem
 
 ```
 docker-compose exec nginx-before-fix bash
-trace-bpfcc -t  'p:/usr/local/modsecurity/lib/libmodsecurity.so.3.0.7:msc_process_request_headers "start"' 'r:/usr/local/modsecurity/lib/libmodsecurity.so.3.0.7:msc_process_request_headers "stop"' 2>/dev/null
+trace-bpfcc -t  'p:/usr/local/modsecurity/lib/libmodsecurity.so.3.0.6:msc_process_request_headers "start"' 'r:/usr/local/modsecurity/lib/libmodsecurity.so.3.0.6:msc_process_request_headers "stop"' 2>/dev/null
 ```
 
 As a result of such profiling one line is printed when:
 - the nginx process calls `msc_process_request_headers` function from modsecurity library
 - the nginx process gets a response from `msc_process_request_headers` function
 
-All such logs are additionally enriched with the pid of the nginx process and a timestamp with a milliseconds resolution. It worth mentioning that the logs can be printed in improper order.
+All such logs are additionally enriched with the pid of the nginx process and a timestamp with milliseconds resolution. It is worth mentioning that the logs can be printed in improper order.
 The profiling is focused on purpose on `msc_process_request_headers` because the rules defined in a sample modsec policy are processed in request headers phase that is wrapped by `msc_process_request_headers`.
 
-In order to compute the processing time for each request within an test that consist of them, you can use the following snippet:
+In order to compute the processing time for each request within a test, you can use the following snippet:
 
 Terminal one
 ```
 docker-compose exec nginx-before-fix bash
-trace-bpfcc -t  'p:/usr/local/modsecurity/lib/libmodsecurity.so.3.0.7:msc_process_request_headers "start"' 'r:/usr/local/modsecurity/lib/libmodsecurity.so.3.0.7:msc_process_request_headers "stop"' 2>/dev/null > /tmp/profiling.log
+trace-bpfcc -t  'p:/usr/local/modsecurity/lib/libmodsecurity.so.3.0.6:msc_process_request_headers "start"' 'r:/usr/local/modsecurity/lib/libmodsecurity.so.3.0.6:msc_process_request_headers "stop"' 2>/dev/null > /tmp/profiling.log
 ```
 
 In another terminal order the benchmark and wait for a results. After that stop profiling process (Ctrl+c) and compute results:
