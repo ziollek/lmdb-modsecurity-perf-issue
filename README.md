@@ -112,7 +112,7 @@ In order to compute the processing time for each request within an test that con
 Terminal one
 ```
 docker-compose exec nginx-before-fix bash
-trace-bpfcc -t  'p:/usr/local/modsecurity/lib/libmodsecurity.so.3.0.7:msc_process_request_headers "start"' 'r:/usr/local/modsecurity/lib/libmodsecurity.so.3.0.7:msc_process_request_headers "stop"' 2>/dev/null > /tmp/profiling.log
+trace-bpfcc -t  'p:/usr/local/modsecurity/lib/libmodsecurity.so.3.0.6:msc_process_request_headers "start"' 'r:/usr/local/modsecurity/lib/libmodsecurity.so.3.0.6:msc_process_request_headers "stop"' 2>/dev/null > /tmp/profiling.log
 ```
 
 In another terminal order the benchmark and wait for a results. After that stop profiling process (Ctrl+c) and compute results:
