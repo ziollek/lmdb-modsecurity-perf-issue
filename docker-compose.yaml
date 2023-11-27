@@ -4,12 +4,15 @@ services:
     image: nginx-with-modsec-base
     build:
       dockerfile: ./docker/nginx-with-modsec-base/Dockerfile
+      args:
+        - MAKE_THREADS=1
   nginx-before-fix:
     image: nginx-before-fix
     build:
       dockerfile: ./docker/nginx-with-specific-modsec/Dockerfile
       args:
         - MODSEC_VERSION=3.0.6
+        - MAKE_THREADS=1
     restart: always
     privileged: true
     ports:
@@ -25,6 +28,7 @@ services:
       dockerfile: ./docker/nginx-with-specific-modsec/Dockerfile
       args:
         - MODSEC_VERSION=3.0.7
+        - MAKE_THREADS=1
     restart: always
     privileged: true
     ports:

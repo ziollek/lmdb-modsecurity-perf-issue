@@ -4,6 +4,8 @@ services:
     image: nginx-with-compiled-kernel
     build:
       dockerfile: ./docker/nginx-with-compiled-kernel/Dockerfile
+      args:
+        - MAKE_THREADS=1
     depends_on:
       - base
   nginx-before-fix:
@@ -12,6 +14,7 @@ services:
       args:
         - MODSEC_VERSION=3.0.6
         - BASE=nginx-with-compiled-kernel
+        - MAKE_THREADS=1
     cap_add:
       - SYS_ADMIN
       - SYS_PTRACE
@@ -24,6 +27,7 @@ services:
       args:
         - MODSEC_VERSION=3.0.7
         - BASE=nginx-with-compiled-kernel
+        - MAKE_THREADS=1
     cap_add:
       - SYS_ADMIN
       - SYS_PTRACE
