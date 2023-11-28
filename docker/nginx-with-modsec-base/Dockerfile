@@ -1,6 +1,7 @@
 FROM ubuntu:23.04
 
 ARG NGINX_VERSION=1.22.0
+ARG MAKE_THREADS=1
 
 RUN apt-get update
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y libtool autoconf build-essential libpcre3-dev zlib1g-dev libssl-dev libxml2-dev libgeoip-dev liblmdb-dev libyajl-dev libcurl4-openssl-dev pkgconf libxslt1-dev libgd-dev automake
@@ -27,7 +28,7 @@ RUN git submodule init
 RUN git submodule update
 RUN sh build.sh
 RUN ./configure --with-lmdb
-RUN make
+RUN make -j${MAKE_THREADS}
 
 # build modsecurity where the issue is fixed
 WORKDIR "/usr/local/src/workdir/modsecurity-v3.0.7"
@@ -35,7 +36,7 @@ RUN git submodule init
 RUN git submodule update
 RUN sh build.sh
 RUN ./configure --with-lmdb
-RUN make
+RUN make -j${MAKE_THREADS}
 
 # copy static configuration responsible for turning on modsecurity in nginx
 COPY config/copy/load_mod_security.conf /etc/nginx/load_mod_security.conf

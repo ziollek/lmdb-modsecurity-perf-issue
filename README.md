@@ -16,16 +16,29 @@ As an upstream (dangling-backend) [long-api](https://datmt.com/backend/docker-im
 
 
 ## Building base environment
+### Default: use only single core to make (compile) process:
 
 ```
-docker-compose up -d --build
+docker compose up --build -d
+```
+### Configure number of threads for make (compile) process. Use 4 CPU cores example:
+```
+docker compose build --build-arg MAKE_THREADS=4 && \
+docker compose up -d
 ```
 
 ## Building profiling environment
 
 Such environment requires to compile kernel which can take a significant time.
+### Default: use only single core to make (compile) process:
 ```
-docker-compose -f docker-compose.yaml -f docker-compose.override.profiling.yaml up --build
+docker compose -f docker-compose.yaml -f docker-compose.override.profiling.yaml up --build -d
+```
+### Configure number of threads for make (compile) process. Use 4 CPU cores example:
+```
+docker compose -f docker-compose.yaml -f docker-compose.override.profiling.yaml build --build-arg MAKE_THREADS=4 && \
+docker compose -f docker-compose.yaml -f docker-compose.override.profiling.yaml up -d
+
 ```
 
 Caveats: You have to bear in mind that profiling tools require compiled kernel headers in order to be available in a container.
